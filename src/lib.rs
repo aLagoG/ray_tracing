@@ -1,5 +1,7 @@
 use std::{fs::File, io::BufWriter};
 
+mod vec3;
+
 pub fn write_gradient() {
     let nx: u32 = 200;
     let ny: u32 = 100;
