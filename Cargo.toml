@@ -1,0 +1,9 @@
+[package]
+name = "raytracinginoneweekend"
+version = "0.1.0"
+authors = ["Andres de Lago <delagoandres@gmail.com>"]
+edition = "2018"
+
+
+[dependencies]
+png = "0.16"
