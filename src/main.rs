@@ -1,4 +1,8 @@
-use raytracinginoneweekend::{ray_color, write_to_file, Color, Point, Ray, Vec3};
+use std::rc::Rc;
+
+use raytracinginoneweekend::{
+    ray_color, write_to_file, Color, HittableList, Point, Ray, Sphere, Vec3,
+};
 
 fn main() {
     let aspect_ratio = 16.0 / 9.0;
@@ -14,6 +18,10 @@ fn main() {
     let vertical = Vec3::new(0.0, viewport_height, 0.0);
     let lower_left = origin - horizontal / 2.0 - vertical / 2.0 - Vec3::new(0.0, 0.0, focal_length);
 
+    let mut world = HittableList::new();
+    world.add(Rc::new(Sphere::new(Point::new(0.0, 0.0, -1.0), 0.5)));
+    world.add(Rc::new(Sphere::new(Point::new(0.0, -100.5, -1.0), 100.0)));
+
     let mut buff = vec![0u8; (img_width * img_height * 3) as usize];
 
     let mut off = 0;
@@ -25,7 +33,7 @@ fn main() {
 
             let ray = Ray::new(origin, lower_left + horizontal * u + vertical * v - origin);
 
-            let pixel = ray_color(&ray);
+            let pixel = ray_color(&ray, &world);
             buff[off * 3] = pixel.r();
             buff[off * 3 + 1] = pixel.g();
             buff[off * 3 + 2] = pixel.b();

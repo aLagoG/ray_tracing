@@ -1,29 +1,42 @@
 use std::{fs::File, io::BufWriter};
 
+mod hittable;
+mod hittable_list;
 mod ray;
+mod sphere;
 mod vec3;
 
+pub use hittable::{HitRecord, Hittable};
+pub use hittable_list::HittableList;
 pub use ray::Ray;
+pub use sphere::Sphere;
 pub use vec3::{Color, Point, Vec3};
 
-pub fn ray_color(ray: &Ray) -> Vec3 {
-    if hit_sphere(&Vec3::new(0.0, 0.0, -1.0), 0.5, ray) {
-        return Vec3::new(1.0, 0.0, 0.0);
+pub fn ray_color(ray: &Ray, world: &dyn Hittable) -> Vec3 {
+    let mut rec = HitRecord::new();
+    if world.hit(ray, 0.0, std::f64::INFINITY, &mut rec) {
+        return (rec.normal + Color::ones()) * 0.5;
     }
+
     let unit_dir = ray.direction().unit_vector();
     let t = 0.5 * (unit_dir.y() + 1.0);
     Vec3::ones() * (1.0 - t) + Vec3::new(0.5, 0.7, 1.0) * t
 }
 
-pub fn hit_sphere(center: &Vec3, radius: f64, ray: &Ray) -> bool {
+pub fn hit_sphere(center: &Vec3, radius: f64, ray: &Ray) -> f64 {
     let oc = ray.origin() - *center;
 
-    let a = ray.direction().dot(ray.direction());
-    let b = 2.0 * oc.dot(ray.direction());
-    let c = oc.dot(oc) - radius * radius;
+    let a = ray.direction().len2();
+    let half_b = oc.dot(ray.direction());
+    let c = oc.len2() - radius * radius;
 
-    let disc = b * b - 4.0 * a * c;
-    disc > 0.0
+    let disc = half_b * half_b - a * c;
+
+    if disc < 0.0 {
+        -1.0
+    } else {
+        (-half_b - disc.sqrt()) / a
+    }
 }
 
 pub fn write_to_file(x: u32, y: u32, data: &[u8], filename: &str) {
