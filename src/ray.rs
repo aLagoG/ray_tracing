@@ -1,25 +1,25 @@
-use crate::vec3::Vec3;
+use crate::{vec3::Vec3, Point};
 
 pub struct Ray {
-    a: Vec3,
-    b: Vec3,
+    origin: Point,
+    direction: Vec3,
 }
 
 impl Ray {
-    pub fn new(a: Vec3, b: Vec3) -> Self {
-        Self { a, b }
+    pub fn new(origin: Point, direction: Vec3) -> Self {
+        Self { origin, direction }
     }
 
     pub fn origin(&self) -> Vec3 {
-        self.a
+        self.origin
     }
 
     pub fn direction(&self) -> Vec3 {
-        self.b
+        self.direction
     }
 
-    pub fn point_at(&self, t: f32) -> Vec3 {
-        self.a + self.b * t
+    pub fn at(&self, t: f64) -> Vec3 {
+        self.origin + self.direction * t
     }
 }
 
@@ -45,6 +45,6 @@ mod tests {
 
         let res = Vec3::new(33.0, 42.0, 51.0);
 
-        assert!(res.approx_eq(ray.point_at(t)));
+        assert!(res.approx_eq(ray.at(t)));
     }
 }

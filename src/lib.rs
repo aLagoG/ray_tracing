@@ -3,44 +3,27 @@ use std::{fs::File, io::BufWriter};
 mod ray;
 mod vec3;
 
-use ray::Ray;
-use vec3::Vec3;
+pub use ray::Ray;
+pub use vec3::{Color, Point, Vec3};
 
-pub fn test_part() {
-    let nx: u32 = 200;
-    let ny: u32 = 100;
-    let mut buff = vec![0u8; (nx * ny * 3) as usize];
-
-    let lower_left = Vec3::new(-2.0, -1.0, -1.0);
-    let horizontal = Vec3::new(4.0, 0.0, 0.0);
-    let vertical = Vec3::new(0.0, 2.0, 0.0);
-    let origin = Vec3::origin();
-
-    let max = 255.99;
-    let mut off = 0;
-    for j in (0..ny).rev() {
-        for i in 0..nx {
-            let u = i as f32 / nx as f32;
-            let v = j as f32 / nx as f32;
-
-            let ray = Ray::new(origin, lower_left + horizontal * u + vertical * v);
-            let color = color(&ray);
-
-            buff[off * 3] = (color[0] * max) as u8;
-            buff[off * 3 + 1] = (color[1] * max) as u8;
-            buff[off * 3 + 2] = (color[2] * max) as u8;
-
-            off += 1;
-        }
+pub fn ray_color(ray: &Ray) -> Vec3 {
+    if hit_sphere(&Vec3::new(0.0, 0.0, -1.0), 0.5, ray) {
+        return Vec3::new(1.0, 0.0, 0.0);
     }
-
-    write_to_file(nx, ny, &buff, "test.png");
-}
-
-pub fn color(ray: &Ray) -> Vec3 {
     let unit_dir = ray.direction().unit_vector();
     let t = 0.5 * (unit_dir.y() + 1.0);
     Vec3::ones() * (1.0 - t) + Vec3::new(0.5, 0.7, 1.0) * t
+}
+
+pub fn hit_sphere(center: &Vec3, radius: f64, ray: &Ray) -> bool {
+    let oc = ray.origin() - *center;
+
+    let a = ray.direction().dot(ray.direction());
+    let b = 2.0 * oc.dot(ray.direction());
+    let c = oc.dot(oc) - radius * radius;
+
+    let disc = b * b - 4.0 * a * c;
+    disc > 0.0
 }
 
 pub fn write_to_file(x: u32, y: u32, data: &[u8], filename: &str) {

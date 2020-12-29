@@ -5,7 +5,7 @@ use std::{
 
 macro_rules! float_eq {
     ($lhs:expr, $rhs:expr) => {
-        float_eq!($lhs, $rhs, std::f32::EPSILON)
+        float_eq!($lhs, $rhs, std::f64::EPSILON)
     };
     ($lhs:expr, $rhs:expr, $epsilon:expr) => {
         ($lhs - $rhs).abs() < $epsilon
@@ -14,12 +14,18 @@ macro_rules! float_eq {
 
 #[derive(Clone, Copy)]
 pub struct Vec3 {
-    e: [f32; 3],
+    e: [f64; 3],
 }
+
+pub type Point = Vec3;
+pub type Color = Vec3;
+
+const COLOR_MAX: f64 = 255.999;
+
 // TODO: add a flag `by_hand` and use it to toggle the opperations being done by hand or with iterators and stuff like that
 // Just for satisfying my curiosity
 impl Vec3 {
-    pub fn new(e1: f32, e2: f32, e3: f32) -> Self {
+    pub fn new(e1: f64, e2: f64, e3: f64) -> Self {
         Self { e: [e1, e2, e3] }
     }
 
@@ -27,35 +33,35 @@ impl Vec3 {
         Self { e: [1.0, 1.0, 1.0] }
     }
 
-    pub fn origin() -> Self {
+    pub fn ceros() -> Self {
         Self { e: [0.0, 0.0, 0.0] }
     }
 
-    pub fn x(&self) -> f32 {
+    pub fn x(&self) -> f64 {
         self[0]
     }
-    pub fn y(&self) -> f32 {
+    pub fn y(&self) -> f64 {
         self[1]
     }
-    pub fn z(&self) -> f32 {
+    pub fn z(&self) -> f64 {
         self[2]
     }
 
-    pub fn r(&self) -> f32 {
-        self[0]
+    pub fn r(&self) -> u8 {
+        (self[0] * COLOR_MAX) as u8
     }
-    pub fn g(&self) -> f32 {
-        self[1]
+    pub fn g(&self) -> u8 {
+        (self[1] * COLOR_MAX) as u8
     }
-    pub fn b(&self) -> f32 {
-        self[2]
+    pub fn b(&self) -> u8 {
+        (self[2] * COLOR_MAX) as u8
     }
 
-    pub fn len2(&self) -> f32 {
+    pub fn len2(&self) -> f64 {
         self.e.iter().fold(0.0, |a, v| v * v + a)
     }
 
-    pub fn len(&self) -> f32 {
+    pub fn len(&self) -> f64 {
         self.len2().sqrt()
     }
 
@@ -70,7 +76,7 @@ impl Vec3 {
         *self / self.len()
     }
 
-    pub fn dot(&self, rhs: Self) -> f32 {
+    pub fn dot(&self, rhs: Self) -> f64 {
         self.e
             .iter()
             .zip(rhs.e.iter())
@@ -91,7 +97,7 @@ impl Vec3 {
         float_eq!(self[0], rhs[0]) && float_eq!(self[1], rhs[1]) && float_eq!(self[2], rhs[2])
     }
 
-    pub fn approx_eq_epsilon(&self, rhs: Self, epsilon: f32) -> bool {
+    pub fn approx_eq_epsilon(&self, rhs: Self, epsilon: f64) -> bool {
         float_eq!(self[0], rhs[0], epsilon)
             && float_eq!(self[1], rhs[1], epsilon)
             && float_eq!(self[2], rhs[2], epsilon)
@@ -99,7 +105,7 @@ impl Vec3 {
 }
 
 impl Index<usize> for Vec3 {
-    type Output = f32;
+    type Output = f64;
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.e[index]
@@ -176,18 +182,18 @@ impl MulAssign for Vec3 {
     }
 }
 
-impl Mul<f32> for Vec3 {
+impl Mul<f64> for Vec3 {
     type Output = Self;
 
-    fn mul(self, rhs: f32) -> Self::Output {
+    fn mul(self, rhs: f64) -> Self::Output {
         Self {
             e: [self[0] * rhs, self[1] * rhs, self[2] * rhs],
         }
     }
 }
 
-impl MulAssign<f32> for Vec3 {
-    fn mul_assign(&mut self, rhs: f32) {
+impl MulAssign<f64> for Vec3 {
+    fn mul_assign(&mut self, rhs: f64) {
         self[0] *= rhs;
         self[1] *= rhs;
         self[2] *= rhs;
@@ -212,18 +218,18 @@ impl DivAssign for Vec3 {
     }
 }
 
-impl Div<f32> for Vec3 {
+impl Div<f64> for Vec3 {
     type Output = Self;
 
-    fn div(self, rhs: f32) -> Self::Output {
+    fn div(self, rhs: f64) -> Self::Output {
         Self {
             e: [self[0] / rhs, self[1] / rhs, self[2] / rhs],
         }
     }
 }
 
-impl DivAssign<f32> for Vec3 {
-    fn div_assign(&mut self, rhs: f32) {
+impl DivAssign<f64> for Vec3 {
+    fn div_assign(&mut self, rhs: f64) {
         self[0] /= rhs;
         self[1] /= rhs;
         self[2] /= rhs;
@@ -232,7 +238,7 @@ impl DivAssign<f32> for Vec3 {
 
 impl From<&str> for Vec3 {
     fn from(s: &str) -> Self {
-        let values: Vec<f32> = s
+        let values: Vec<f64> = s
             .split_ascii_whitespace()
             .map(|v| v.parse().expect("Invalid float literal in string"))
             .collect();
@@ -266,9 +272,9 @@ mod tests {
         assert!(vec[1] == vec.y());
         assert!(vec[2] == vec.z());
 
-        assert!(vec.x() == vec.r());
-        assert!(vec.y() == vec.g());
-        assert!(vec.z() == vec.b());
+        assert!((vec.x() * COLOR_MAX) as u8 == vec.r());
+        assert!((vec.y() * COLOR_MAX) as u8 == vec.g());
+        assert!((vec.z() * COLOR_MAX) as u8 == vec.b());
 
         vec[0] = 4.0;
         assert!(vec[0] == 4.0);
