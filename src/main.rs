@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{io::Write, rc::Rc};
 
 use rand::Rng;
 use raytracinginoneweekend::{
@@ -10,6 +10,7 @@ fn main() {
     let img_width: u32 = 400;
     let img_height: u32 = (img_width as f64 / aspect_ratio) as u32;
     let samples_per_pixel = 100;
+    let max_depth = 50;
 
     let camera = Camera::new();
 
@@ -23,6 +24,9 @@ fn main() {
     let mut off = 0;
     for j in (0..img_height).rev() {
         print!("\rTodo: {:#3}", j);
+        if std::io::stdout().flush().is_err() {
+            eprintln!("Error flushing stdout");
+        }
         for i in 0..img_width {
             let mut pixel = Color::ceros();
             for _ in 0..samples_per_pixel {
@@ -30,7 +34,7 @@ fn main() {
                 let v = (j as f64 + rng.gen::<f64>()) / (img_height - 1) as f64;
 
                 let ray = camera.get_ray(u, v);
-                pixel += ray_color(&ray, &world);
+                pixel += ray_color(&ray, &world, max_depth);
             }
 
             buff[off * 3] = pixel.r(samples_per_pixel);

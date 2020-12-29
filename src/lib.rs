@@ -1,23 +1,28 @@
 use std::{fs::File, io::BufWriter};
 
+mod camera;
 mod hittable;
 mod hittable_list;
 mod ray;
 mod sphere;
 mod vec3;
-mod camera;
 
+pub use camera::Camera;
 pub use hittable::{HitRecord, Hittable};
 pub use hittable_list::HittableList;
 pub use ray::Ray;
 pub use sphere::Sphere;
 pub use vec3::{Color, Point, Vec3};
-pub use camera::Camera;
 
-pub fn ray_color(ray: &Ray, world: &dyn Hittable) -> Vec3 {
+pub fn ray_color(ray: &Ray, world: &dyn Hittable, depth: i32) -> Vec3 {
+    if depth <= 0 {
+        return Color::ceros();
+    }
+
     let mut rec = HitRecord::new();
-    if world.hit(ray, 0.0, std::f64::INFINITY, &mut rec) {
-        return (rec.normal + Color::ones()) * 0.5;
+    if world.hit(ray, 0.001, std::f64::INFINITY, &mut rec) {
+        let target = rec.p + rec.normal + Color::random_unit_vector();
+        return ray_color(&Ray::new(rec.p, target - rec.p), world, depth - 1) * 0.5;
     }
 
     let unit_dir = ray.direction().unit_vector();

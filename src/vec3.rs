@@ -3,6 +3,8 @@ use std::{
     ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
+use rand::{thread_rng, Rng};
+
 macro_rules! float_eq {
     ($lhs:expr, $rhs:expr) => {
         float_eq!($lhs, $rhs, std::f64::EPSILON)
@@ -22,6 +24,20 @@ pub type Color = Vec3;
 
 const COLOR_MAX: f64 = 255.999;
 
+fn clamp(val: f64, min: f64, max: f64) -> f64 {
+    if val > max {
+        max
+    } else if val < min {
+        min
+    } else {
+        val
+    }
+}
+
+fn get_color_value(v: f64, samples: u32) -> u8 {
+    (clamp((v / samples as f64).sqrt(), 0.0, 1.0) * COLOR_MAX) as u8
+}
+
 // TODO: add a flag `by_hand` and use it to toggle the opperations being done by hand or with iterators and stuff like that
 // Just for satisfying my curiosity
 impl Vec3 {
@@ -37,6 +53,35 @@ impl Vec3 {
         Self { e: [0.0, 0.0, 0.0] }
     }
 
+    pub fn random_in_unit_cube() -> Self {
+        let mut rng = thread_rng();
+        Self {
+            e: [rng.gen(), rng.gen(), rng.gen()],
+        }
+    }
+
+    pub fn random_in_range(min: f64, max: f64) -> Self {
+        let mut rng = thread_rng();
+        let distr = rand::distributions::Uniform::new(min, max);
+        Self {
+            e: [rng.sample(distr), rng.sample(distr), rng.sample(distr)],
+        }
+    }
+
+    pub fn random_in_unit_sphere() -> Self {
+        loop {
+            let v = Vec3::random_in_range(-1.0, 1.0);
+            if v.len2() >= 1.0 {
+                continue;
+            }
+            return v;
+        }
+    }
+
+    pub fn random_unit_vector() -> Self {
+        Vec3::random_in_unit_sphere().unit_vector()
+    }
+
     pub fn x(&self) -> f64 {
         self[0]
     }
@@ -46,15 +91,15 @@ impl Vec3 {
     pub fn z(&self) -> f64 {
         self[2]
     }
-    // TODO: Maybe make a clamp function or trait instead of this
+
     pub fn r(&self, samples: u32) -> u8 {
-        ((self[0] / samples as f64).max(0.0).min(1.0) * COLOR_MAX) as u8
+        get_color_value(self[0], samples)
     }
     pub fn g(&self, samples: u32) -> u8 {
-        ((self[1] / samples as f64).max(0.0).min(1.0) * COLOR_MAX) as u8
+        get_color_value(self[1], samples)
     }
     pub fn b(&self, samples: u32) -> u8 {
-        ((self[2] / samples as f64).max(0.0).min(1.0) * COLOR_MAX) as u8
+        get_color_value(self[2], samples)
     }
 
     pub fn len2(&self) -> f64 {
