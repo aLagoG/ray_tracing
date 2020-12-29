@@ -46,15 +46,15 @@ impl Vec3 {
     pub fn z(&self) -> f64 {
         self[2]
     }
-
-    pub fn r(&self) -> u8 {
-        (self[0] * COLOR_MAX) as u8
+    // TODO: Maybe make a clamp function or trait instead of this
+    pub fn r(&self, samples: u32) -> u8 {
+        ((self[0] / samples as f64).max(0.0).min(1.0) * COLOR_MAX) as u8
     }
-    pub fn g(&self) -> u8 {
-        (self[1] * COLOR_MAX) as u8
+    pub fn g(&self, samples: u32) -> u8 {
+        ((self[1] / samples as f64).max(0.0).min(1.0) * COLOR_MAX) as u8
     }
-    pub fn b(&self) -> u8 {
-        (self[2] * COLOR_MAX) as u8
+    pub fn b(&self, samples: u32) -> u8 {
+        ((self[2] / samples as f64).max(0.0).min(1.0) * COLOR_MAX) as u8
     }
 
     pub fn len2(&self) -> f64 {
@@ -272,9 +272,9 @@ mod tests {
         assert!(vec[1] == vec.y());
         assert!(vec[2] == vec.z());
 
-        assert!((vec.x() * COLOR_MAX) as u8 == vec.r());
-        assert!((vec.y() * COLOR_MAX) as u8 == vec.g());
-        assert!((vec.z() * COLOR_MAX) as u8 == vec.b());
+        assert!((vec.x() * COLOR_MAX) as u8 == vec.r(1));
+        assert!((vec.y() * COLOR_MAX) as u8 == vec.g(1));
+        assert!((vec.z() * COLOR_MAX) as u8 == vec.b(1));
 
         vec[0] = 4.0;
         assert!(vec[0] == 4.0);

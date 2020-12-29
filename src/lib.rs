@@ -5,12 +5,14 @@ mod hittable_list;
 mod ray;
 mod sphere;
 mod vec3;
+mod camera;
 
 pub use hittable::{HitRecord, Hittable};
 pub use hittable_list::HittableList;
 pub use ray::Ray;
 pub use sphere::Sphere;
 pub use vec3::{Color, Point, Vec3};
+pub use camera::Camera;
 
 pub fn ray_color(ray: &Ray, world: &dyn Hittable) -> Vec3 {
     let mut rec = HitRecord::new();
