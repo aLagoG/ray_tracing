@@ -23,6 +23,14 @@ impl Vec3 {
         Self { e: [e1, e2, e3] }
     }
 
+    pub fn ones() -> Self {
+        Self { e: [1.0, 1.0, 1.0] }
+    }
+
+    pub fn origin() -> Self {
+        Self { e: [0.0, 0.0, 0.0] }
+    }
+
     pub fn x(&self) -> f32 {
         self[0]
     }

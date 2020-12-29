@@ -1,5 +1,5 @@
-use raytracinginoneweekend::{self, write_gradient};
+use raytracinginoneweekend::{self, test_part};
 
 fn main() {
-    write_gradient();
+    test_part();
 }
