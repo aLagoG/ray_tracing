@@ -3,7 +3,7 @@ use std::{io::Write, rc::Rc};
 use rand::Rng;
 use raytracinginoneweekend::{
     ray_color, write_to_file, Camera, Color, Dielectric, HittableList, Lambertian, Metal, Point,
-    Sphere,
+    Sphere, Vec3,
 };
 
 fn main() {
@@ -13,7 +13,13 @@ fn main() {
     let samples_per_pixel = 100;
     let max_depth = 50;
 
-    let camera = Camera::new();
+    let camera = Camera::new(
+        Point::new(-2.0, 2.0, 1.0),
+        Point::new(0.0, 0.0, -1.0),
+        Vec3::new(0.0, 1.0, 0.0),
+        20.0,
+        aspect_ratio,
+    );
 
     let mut world = HittableList::new();
 
