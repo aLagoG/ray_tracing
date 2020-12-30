@@ -16,7 +16,9 @@ pub use dielectric::Dielectric;
 pub use hittable::{HitRecord, Hittable};
 pub use hittable_list::HittableList;
 pub use lambertian::Lambertian;
+use material::Material;
 pub use metal::Metal;
+use rand::Rng;
 pub use ray::Ray;
 pub use sphere::Sphere;
 pub use vec3::{Color, Point, Vec3};
@@ -71,4 +73,67 @@ pub fn write_to_file(x: u32, y: u32, data: &[u8], filename: &str) {
     writer
         .write_image_data(data)
         .expect("Error while saving image data");
+}
+
+pub fn random_scene() -> HittableList {
+    let mut world = HittableList::new();
+
+    let ground_material = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+    world.add(Rc::new(Sphere::new(
+        Point::new(0.0, -1000.0, 0.0),
+        1000.0,
+        ground_material,
+    )));
+
+    let mut rng = rand::thread_rng();
+    for a in -11..11 {
+        let a = a as f64;
+        for b in -11..11 {
+            let b = b as f64;
+
+            let choose_mat: f64 = rng.gen();
+            let center = Point::new(a + 0.9 * rng.gen::<f64>(), 0.2, b + 0.9 * rng.gen::<f64>());
+
+            if (center - Point::new(4.0, 0.2, 0.0)).len() > 0.9 {
+                let sphere_material: Rc<dyn Material>;
+
+                if choose_mat < 0.8 {
+                    // diffuse
+                    let albedo = Color::random_in_unit_cube() * Color::random_in_unit_cube();
+                    sphere_material = Rc::new(Lambertian::new(albedo));
+                } else if choose_mat < 0.9 {
+                    // metal
+                    let albedo = Color::random_in_range(0.5, 1.0);
+                    let fuzz = rng.gen_range(0.0..0.5);
+                    sphere_material = Rc::new(Metal::new(albedo, fuzz));
+                } else {
+                    // glass
+                    sphere_material = Rc::new(Dielectric::new(1.5));
+                }
+
+                world.add(Rc::new(Sphere::new(center, 0.2, sphere_material)));
+            }
+        }
+    }
+
+    let material1 = Rc::new(Dielectric::new(1.5));
+    world.add(Rc::new(Sphere::new(
+        Point::new(0.0, 1.0, 0.0),
+        1.0,
+        material1,
+    )));
+    let material2 = Rc::new(Lambertian::new(Color::new(0.4, 0.2, 0.1)));
+    world.add(Rc::new(Sphere::new(
+        Point::new(-4.0, 1.0, 0.0),
+        1.0,
+        material2,
+    )));
+    let material3 = Rc::new(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
+    world.add(Rc::new(Sphere::new(
+        Point::new(4.0, 1.0, 0.0),
+        1.0,
+        material3,
+    )));
+
+    world
 }
