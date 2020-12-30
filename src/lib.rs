@@ -1,8 +1,11 @@
-use std::{fs::File, io::BufWriter};
+use std::{fs::File, io::BufWriter, rc::Rc};
 
 mod camera;
 mod hittable;
 mod hittable_list;
+mod lambertian;
+mod material;
+mod metal;
 mod ray;
 mod sphere;
 mod vec3;
@@ -10,6 +13,8 @@ mod vec3;
 pub use camera::Camera;
 pub use hittable::{HitRecord, Hittable};
 pub use hittable_list::HittableList;
+pub use lambertian::Lambertian;
+pub use metal::Metal;
 pub use ray::Ray;
 pub use sphere::Sphere;
 pub use vec3::{Color, Point, Vec3};
@@ -21,8 +26,13 @@ pub fn ray_color(ray: &Ray, world: &dyn Hittable, depth: i32) -> Vec3 {
 
     let mut rec = HitRecord::new();
     if world.hit(ray, 0.001, std::f64::INFINITY, &mut rec) {
-        let target = rec.p + rec.normal + Color::random_unit_vector();
-        return ray_color(&Ray::new(rec.p, target - rec.p), world, depth - 1) * 0.5;
+        let mut scattered = Ray::new(Point::ceros(), Vec3::ceros());
+        let mut attenuation = Vec3::ceros();
+
+        if Rc::clone(&rec.material).scatter(ray, &mut rec, &mut attenuation, &mut scattered) {
+            return attenuation * ray_color(&scattered, world, depth - 1);
+        }
+        return Color::ceros();
     }
 
     let unit_dir = ray.direction().unit_vector();

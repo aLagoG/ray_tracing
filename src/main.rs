@@ -2,7 +2,7 @@ use std::{io::Write, rc::Rc};
 
 use rand::Rng;
 use raytracinginoneweekend::{
-    ray_color, write_to_file, Camera, Color, HittableList, Point, Sphere,
+    ray_color, write_to_file, Camera, Color, HittableList, Lambertian, Metal, Point, Sphere,
 };
 
 fn main() {
@@ -15,8 +15,32 @@ fn main() {
     let camera = Camera::new();
 
     let mut world = HittableList::new();
-    world.add(Rc::new(Sphere::new(Point::new(0.0, 0.0, -1.0), 0.5)));
-    world.add(Rc::new(Sphere::new(Point::new(0.0, -100.5, -1.0), 100.0)));
+
+    let material_ground = Rc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
+    let material_center = Rc::new(Lambertian::new(Color::new(0.7, 0.3, 0.3)));
+    let material_left = Rc::new(Metal::new(Color::new(0.8, 0.8, 0.8), 0.3));
+    let material_right = Rc::new(Metal::new(Color::new(0.8, 0.6, 0.2), 1.0));
+
+    world.add(Rc::new(Sphere::new(
+        Point::new(0.0, -100.5, -1.0),
+        100.0,
+        material_ground,
+    )));
+    world.add(Rc::new(Sphere::new(
+        Point::new(0.0, 0.0, -1.0),
+        0.5,
+        material_center,
+    )));
+    world.add(Rc::new(Sphere::new(
+        Point::new(-1.0, 0.0, -1.0),
+        0.5,
+        material_left,
+    )));
+    world.add(Rc::new(Sphere::new(
+        Point::new(1.0, 0.0, -1.0),
+        0.5,
+        material_right,
+    )));
 
     let mut buff = vec![0u8; (img_width * img_height * 3) as usize];
     let mut rng = rand::thread_rng();

@@ -14,6 +14,15 @@ macro_rules! float_eq {
     };
 }
 
+macro_rules! float_eq_cero {
+    ($lhs:expr) => {
+        float_eq_cero!($lhs, std::f64::EPSILON)
+    };
+    ($lhs:expr, $epsilon:expr) => {
+        $lhs.abs() < $epsilon
+    };
+}
+
 #[derive(Clone, Copy)]
 pub struct Vec3 {
     e: [f64; 3],
@@ -146,6 +155,10 @@ impl Vec3 {
         float_eq!(self[0], rhs[0], epsilon)
             && float_eq!(self[1], rhs[1], epsilon)
             && float_eq!(self[2], rhs[2], epsilon)
+    }
+
+    pub fn approx_cero(&self) -> bool {
+        float_eq_cero!(self[0]) && float_eq_cero!(self[1]) && float_eq_cero!(self[2])
     }
 }
 
