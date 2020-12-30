@@ -11,12 +11,6 @@ impl Metal {
     }
 }
 
-impl Metal {
-    fn reflect(v: Vec3, n: Vec3) -> Vec3 {
-        v - n * (v.dot(n) * 2.0)
-    }
-}
-
 impl Material for Metal {
     fn scatter(
         &self,
@@ -25,7 +19,7 @@ impl Material for Metal {
         attenuation: &mut Color,
         scattered: &mut crate::Ray,
     ) -> bool {
-        let reflected = Metal::reflect(ray.direction().unit_vector(), rec.normal);
+        let reflected = Vec3::reflect(ray.direction().unit_vector(), rec.normal);
 
         *scattered = Ray::new(rec.p, reflected + Vec3::random_in_unit_sphere() * self.fuzz);
         *attenuation = self.albedo;

@@ -1,6 +1,7 @@
 use std::{fs::File, io::BufWriter, rc::Rc};
 
 mod camera;
+mod dielectric;
 mod hittable;
 mod hittable_list;
 mod lambertian;
@@ -11,6 +12,7 @@ mod sphere;
 mod vec3;
 
 pub use camera::Camera;
+pub use dielectric::Dielectric;
 pub use hittable::{HitRecord, Hittable};
 pub use hittable_list::HittableList;
 pub use lambertian::Lambertian;

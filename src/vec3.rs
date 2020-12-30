@@ -160,6 +160,19 @@ impl Vec3 {
     pub fn approx_cero(&self) -> bool {
         float_eq_cero!(self[0]) && float_eq_cero!(self[1]) && float_eq_cero!(self[2])
     }
+
+    pub fn refract(uv: Vec3, n: Vec3, ei_over_et: f64) -> Vec3 {
+        let cos_theta = n.dot(-uv).min(1.0);
+
+        let perpendicular_ray = (uv + n * cos_theta) * ei_over_et;
+        let parallel_ray = n * -(1.0 - perpendicular_ray.len2()).abs().sqrt();
+
+        perpendicular_ray + parallel_ray
+    }
+
+    pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
+        v - n * (v.dot(n) * 2.0)
+    }
 }
 
 impl Index<usize> for Vec3 {
@@ -177,7 +190,7 @@ impl IndexMut<usize> for Vec3 {
 }
 
 impl Neg for Vec3 {
-    type Output = Self;
+    type Output = Vec3;
 
     fn neg(self) -> Self::Output {
         Self {
@@ -187,7 +200,7 @@ impl Neg for Vec3 {
 }
 
 impl Add for Vec3 {
-    type Output = Self;
+    type Output = Vec3;
 
     fn add(self, rhs: Self) -> Self::Output {
         Self {
@@ -205,7 +218,7 @@ impl AddAssign for Vec3 {
 }
 
 impl Sub for Vec3 {
-    type Output = Self;
+    type Output = Vec3;
 
     fn sub(self, rhs: Self) -> Self::Output {
         Self {
@@ -223,7 +236,7 @@ impl SubAssign for Vec3 {
 }
 
 impl Mul for Vec3 {
-    type Output = Self;
+    type Output = Vec3;
 
     fn mul(self, rhs: Self) -> Self::Output {
         Self {
@@ -241,7 +254,7 @@ impl MulAssign for Vec3 {
 }
 
 impl Mul<f64> for Vec3 {
-    type Output = Self;
+    type Output = Vec3;
 
     fn mul(self, rhs: f64) -> Self::Output {
         Self {
@@ -259,7 +272,7 @@ impl MulAssign<f64> for Vec3 {
 }
 
 impl Div for Vec3 {
-    type Output = Self;
+    type Output = Vec3;
 
     fn div(self, rhs: Self) -> Self::Output {
         Self {
@@ -277,7 +290,7 @@ impl DivAssign for Vec3 {
 }
 
 impl Div<f64> for Vec3 {
-    type Output = Self;
+    type Output = Vec3;
 
     fn div(self, rhs: f64) -> Self::Output {
         Self {
