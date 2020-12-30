@@ -1,4 +1,5 @@
-use crate::{material::Material, Color, Ray, Vec3};
+use super::Material;
+use crate::{Color, Ray, Vec3};
 
 pub struct Dielectric {
     ri: f64,

@@ -1,6 +1,10 @@
 use std::rc::Rc;
 
-use crate::{lambertian::Lambertian, material::Material, Color, Point, Ray, Vec3};
+use crate::{
+    materials::{Lambertian, Material},
+    ray::Ray,
+    Color, Point, Vec3,
+};
 
 #[derive(Clone)]
 pub struct HitRecord {
@@ -30,8 +34,4 @@ impl HitRecord {
             -outward_normal
         }
     }
-}
-
-pub trait Hittable {
-    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool;
 }

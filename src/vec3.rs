@@ -80,7 +80,7 @@ impl Vec3 {
     pub fn random_in_unit_sphere() -> Self {
         loop {
             let v = Vec3::random_in_range(-1.0, 1.0);
-            if v.len2() >= 1.0 {
+            if v.len2() > 1.0 {
                 continue;
             }
             return v;
@@ -95,7 +95,7 @@ impl Vec3 {
         loop {
             let mut p = Vec3::random_in_range(-1.0, 1.0);
             p[2] = 0.0;
-            if p.len2() >= 1.0 {
+            if p.len2() > 1.0 {
                 continue;
             }
             return p;

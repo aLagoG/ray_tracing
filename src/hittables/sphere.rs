@@ -1,10 +1,6 @@
 use std::rc::Rc;
 
-use crate::{
-    hittable::{HitRecord, Hittable},
-    material::Material,
-    Point,
-};
+use crate::{materials::Material, HitRecord, Hittable, Point};
 
 pub struct Sphere {
     center: Point,

@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::hittable::{HitRecord, Hittable};
+use crate::{HitRecord, Hittable};
 
 pub struct HittableList {
     // TODO: check if using Box is possible instead of Rc
