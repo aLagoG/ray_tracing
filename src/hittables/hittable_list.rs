@@ -3,7 +3,6 @@ use std::rc::Rc;
 use crate::{HitRecord, Hittable};
 
 pub struct HittableList {
-    // TODO: check if using Box is possible instead of Rc
     objects: Vec<Rc<dyn Hittable>>,
 }
 
@@ -24,6 +23,10 @@ impl HittableList {
 
     pub fn add(&mut self, object: Rc<dyn Hittable>) {
         self.objects.push(object);
+    }
+
+    pub fn count(&self) -> usize {
+        self.objects.len()
     }
 }
 

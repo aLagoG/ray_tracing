@@ -5,24 +5,6 @@ use std::{
 
 use rand::{thread_rng, Rng};
 
-macro_rules! float_eq {
-    ($lhs:expr, $rhs:expr) => {
-        float_eq!($lhs, $rhs, std::f64::EPSILON)
-    };
-    ($lhs:expr, $rhs:expr, $epsilon:expr) => {
-        ($lhs - $rhs).abs() < $epsilon
-    };
-}
-
-macro_rules! float_eq_cero {
-    ($lhs:expr) => {
-        float_eq_cero!($lhs, std::f64::EPSILON)
-    };
-    ($lhs:expr, $epsilon:expr) => {
-        $lhs.abs() < $epsilon
-    };
-}
-
 #[derive(Clone, Copy)]
 pub struct Vec3 {
     e: [f64; 3],
@@ -47,8 +29,6 @@ fn get_color_value(v: f64, samples: u32) -> u8 {
     (clamp((v / samples as f64).sqrt(), 0.0, 1.0) * COLOR_MAX) as u8
 }
 
-// TODO: add a flag `by_hand` and use it to toggle the opperations being done by hand or with iterators and stuff like that
-// Just for satisfying my curiosity
 impl Vec3 {
     pub fn new(e1: f64, e2: f64, e3: f64) -> Self {
         Self { e: [e1, e2, e3] }

@@ -7,3 +7,17 @@ edition = "2018"
 [dependencies]
 png = "0.16"
 rand = "0.8"
+
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "bench"
+harness = false
+
+[lib]
+bench = false
+
+[[bin]]
+name = "ray_tracing"
+bench = false
