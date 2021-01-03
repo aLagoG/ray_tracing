@@ -8,7 +8,7 @@ pub use dielectric::Dielectric;
 pub use lambertian::Lambertian;
 pub use metal::Metal;
 
-pub trait Material {
+pub trait Material: Send + Sync {
     fn scatter(
         &self,
         ray: &Ray,

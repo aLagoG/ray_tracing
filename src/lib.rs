@@ -1,9 +1,6 @@
 use rand::Rng;
-use std::{
-    fs::File,
-    io::{BufWriter, Write},
-    rc::Rc,
-};
+use rayon::prelude::*;
+use std::{fs::File, io::BufWriter, sync::Arc};
 
 #[macro_use]
 mod macros;
@@ -34,7 +31,7 @@ pub fn ray_color(ray: &Ray, world: &dyn Hittable, depth: i32) -> Vec3 {
         let mut scattered = Ray::new(Point::ceros(), Vec3::ceros());
         let mut attenuation = Vec3::ceros();
 
-        if Rc::clone(&rec.material).scatter(ray, &mut rec, &mut attenuation, &mut scattered) {
+        if Arc::clone(&rec.material).scatter(ray, &mut rec, &mut attenuation, &mut scattered) {
             return attenuation * ray_color(&scattered, world, depth - 1);
         }
         return Color::ceros();
@@ -64,8 +61,8 @@ pub fn random_scene(config: &SceneConfig) -> HittableList {
     config.validate();
     let mut world = HittableList::new();
 
-    let ground_material = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
-    world.add(Rc::new(Sphere::new(
+    let ground_material = Arc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+    world.add(Arc::new(Sphere::new(
         Point::new(0.0, -1000.0, 0.0),
         1000.0,
         ground_material,
@@ -93,42 +90,42 @@ pub fn random_scene(config: &SceneConfig) -> HittableList {
             let center = Point::new(a + 0.9 * rng.gen::<f64>(), 0.2, b + 0.9 * rng.gen::<f64>());
 
             if (center - Point::new(4.0, 0.2, 0.0)).len() > 0.9 {
-                let sphere_material: Rc<dyn Material>;
+                let sphere_material: Arc<dyn Material>;
 
                 if choose_mat < config.diffuse_prob {
                     // diffuse
                     let albedo = Color::random_in_unit_cube() * Color::random_in_unit_cube();
-                    sphere_material = Rc::new(Lambertian::new(albedo));
+                    sphere_material = Arc::new(Lambertian::new(albedo));
                 } else if choose_mat < config.diffuse_prob + config.metal_prob {
                     // metal
                     let albedo = Color::random_in_range(0.5, 1.0);
                     let fuzz = rng.gen_range(0.0..0.5);
-                    sphere_material = Rc::new(Metal::new(albedo, fuzz));
+                    sphere_material = Arc::new(Metal::new(albedo, fuzz));
                 } else {
                     // glass
-                    sphere_material = Rc::new(Dielectric::new(1.5));
+                    sphere_material = Arc::new(Dielectric::new(1.5));
                 }
 
-                world.add(Rc::new(Sphere::new(center, 0.2, sphere_material)));
+                world.add(Arc::new(Sphere::new(center, 0.2, sphere_material)));
                 current_count += 1.0;
             }
         }
     }
 
-    let material1 = Rc::new(Dielectric::new(1.5));
-    world.add(Rc::new(Sphere::new(
+    let material1 = Arc::new(Dielectric::new(1.5));
+    world.add(Arc::new(Sphere::new(
         Point::new(0.0, 1.0, 0.0),
         1.0,
         material1,
     )));
-    let material2 = Rc::new(Lambertian::new(Color::new(0.4, 0.2, 0.1)));
-    world.add(Rc::new(Sphere::new(
+    let material2 = Arc::new(Lambertian::new(Color::new(0.4, 0.2, 0.1)));
+    world.add(Arc::new(Sphere::new(
         Point::new(-4.0, 1.0, 0.0),
         1.0,
         material2,
     )));
-    let material3 = Rc::new(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
-    world.add(Rc::new(Sphere::new(
+    let material3 = Arc::new(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
+    world.add(Arc::new(Sphere::new(
         Point::new(4.0, 1.0, 0.0),
         1.0,
         material3,
@@ -158,40 +155,32 @@ pub fn run(config: &RunConfig) {
         cam_config.focus_dist,
     );
 
-    let world = random_scene(&scene_config);
+    let world: Arc<dyn Hittable> = Arc::new(random_scene(&scene_config));
 
     let mut buff = vec![0u8; (img_config.width * img_height * 3) as usize];
-    let mut rng = rand::thread_rng();
 
-    let mut off = 0;
-    for j in (0..img_height).rev() {
-        if !quiet {
-            print!("\rTodo: {:#3}", j);
-            if std::io::stdout().flush().is_err() {
-                eprintln!("Error flushing stdout");
-            }
-        }
-        for i in 0..img_config.width {
-            let mut pixel = Color::ceros();
-            for _ in 0..img_config.samples_per_pixel {
-                let u = (i as f64 + rng.gen::<f64>()) / (img_config.width - 1) as f64;
-                let v = (j as f64 + rng.gen::<f64>()) / (img_height - 1) as f64;
+    buff.par_chunks_mut(img_config.width as usize * 3)
+        .rev()
+        .enumerate()
+        .for_each(|(j, row)| {
+            row.par_chunks_mut(3).enumerate().for_each_init(
+                || (rand::thread_rng(), world.clone()),
+                |(rng, world), (i, pixel)| {
+                    let mut pixel_color = Color::ceros();
 
-                let ray = camera.get_ray(u, v);
-                pixel += ray_color(&ray, &world, img_config.max_depth);
-            }
+                    for _ in 0..img_config.samples_per_pixel {
+                        let u = (i as f64 + rng.gen::<f64>()) / (img_config.width - 1) as f64;
+                        let v = (j as f64 + rng.gen::<f64>()) / (img_height - 1) as f64;
+                        let ray = camera.get_ray(u, v);
+                        pixel_color += ray_color(&ray, &**world, img_config.max_depth);
 
-            buff[off * 3] = pixel.r(img_config.samples_per_pixel);
-            buff[off * 3 + 1] = pixel.g(img_config.samples_per_pixel);
-            buff[off * 3 + 2] = pixel.b(img_config.samples_per_pixel);
-
-            off += 1;
-        }
-    }
-
-    if !quiet {
-        println!("\nDone");
-    }
+                        pixel[0] = pixel_color.r(img_config.samples_per_pixel);
+                        pixel[1] = pixel_color.g(img_config.samples_per_pixel);
+                        pixel[2] = pixel_color.b(img_config.samples_per_pixel);
+                    }
+                },
+            )
+        });
 
     if !quiet {
         write_to_file(img_config.width, img_height, &buff, filename);

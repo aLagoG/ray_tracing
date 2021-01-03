@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::{
     materials::{Lambertian, Material},
@@ -12,7 +12,7 @@ pub struct HitRecord {
     pub normal: Vec3,
     pub t: f64,
     pub front_face: bool,
-    pub material: Rc<dyn Material>,
+    pub material: Arc<dyn Material>,
 }
 
 impl HitRecord {
@@ -22,7 +22,7 @@ impl HitRecord {
             normal: Vec3::ceros(),
             t: 0.0,
             front_face: false,
-            material: Rc::new(Lambertian::new(Color::ceros())),
+            material: Arc::new(Lambertian::new(Color::ceros())),
         }
     }
 
