@@ -20,10 +20,7 @@ fn get_config() -> RunConfig<'static> {
 }
 
 fn set_up_group(group: &mut BenchmarkGroup<WallTime>) {
-    group
-        .warm_up_time(Duration::from_secs(5))
-        .measurement_time(Duration::from_secs(15))
-        .sample_size(50);
+    group.warm_up_time(Duration::from_secs(5)).sample_size(50);
 }
 
 pub fn samples_per_pixel(c: &mut Criterion) {
@@ -37,7 +34,7 @@ pub fn samples_per_pixel(c: &mut Criterion) {
         b.iter(|| ray_tracing::run(&c))
     });
 
-    for i in (10..=100).step_by(10) {
+    for i in (10..=100).step_by(20) {
         config.img_config.samples_per_pixel = i;
         group.bench_with_input(BenchmarkId::from_parameter(i), &config, |b, c| {
             b.iter(|| ray_tracing::run(&c))
@@ -136,6 +133,31 @@ pub fn materials(c: &mut Criterion) {
     group.finish();
 }
 
+pub fn bvh(c: &mut Criterion) {
+    let mut config = get_config();
+    config.img_config.samples_per_pixel = 10;
+    config.img_config.max_depth = 10;
+
+    let mut group = c.benchmark_group("bvh");
+    set_up_group(&mut group);
+
+    for i in (50..=500).step_by(50) {
+        config.scene_config.small_sphere_count = i;
+
+        config.use_bvh = true;
+        group.bench_with_input(BenchmarkId::new("bvh", i), &config, |b, c| {
+            b.iter(|| ray_tracing::run(&c))
+        });
+
+        config.use_bvh = false;
+        group.bench_with_input(BenchmarkId::new("plain", i), &config, |b, c| {
+            b.iter(|| ray_tracing::run(&c))
+        });
+    }
+
+    group.finish();
+}
+
 criterion_group!(
     benches,
     samples_per_pixel,
@@ -143,5 +165,6 @@ criterion_group!(
     img_width,
     sphere_count,
     materials,
+    bvh,
 );
 criterion_main!(benches);

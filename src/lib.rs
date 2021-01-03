@@ -15,7 +15,7 @@ mod vec3;
 pub use camera::Camera;
 pub use config::{CameraConfig, ImgConfig, RunConfig, SceneConfig};
 pub use hittables::Hittable;
-use hittables::{HitRecord, HittableList, Sphere};
+use hittables::{HitRecord, HittableList, Sphere, BVH};
 pub use materials::Material;
 use materials::{Dielectric, Lambertian, Metal};
 pub use ray::Ray;
@@ -141,6 +141,7 @@ pub fn run(config: &RunConfig) {
         scene_config,
         filename,
         quiet,
+        use_bvh,
     } = config;
 
     let img_height: u32 = (img_config.width as f64 / img_config.aspect_ratio) as u32;
@@ -155,7 +156,14 @@ pub fn run(config: &RunConfig) {
         cam_config.focus_dist,
     );
 
-    let world: Arc<dyn Hittable> = Arc::new(random_scene(&scene_config));
+    let mut scene = random_scene(&scene_config);
+    let world: Arc<dyn Hittable> = if *use_bvh {
+        Arc::new(HittableList::with_objects(vec![Arc::new(
+            BVH::from_hittable_list(&mut scene),
+        )]))
+    } else {
+        Arc::new(scene)
+    };
 
     let mut buff = vec![0u8; (img_config.width * img_height * 3) as usize];
 

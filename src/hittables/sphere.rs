@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
-use crate::{materials::Material, HitRecord, Hittable, Point};
+use super::AABB;
+use crate::{materials::Material, HitRecord, Hittable, Point, Vec3};
 
 pub struct Sphere {
     center: Point,
@@ -45,6 +46,13 @@ impl Hittable for Sphere {
         let outward_normal = (rec.p - self.center) / self.radius;
         rec.set_face_normal(ray, outward_normal);
         rec.material = Arc::clone(&self.material);
+
+        true
+    }
+
+    fn bounding_box(&self, output_box: &mut AABB) -> bool {
+        let rad = Vec3::new(self.radius, self.radius, self.radius);
+        *output_box = AABB::new(self.center - rad, self.center + rad);
 
         true
     }

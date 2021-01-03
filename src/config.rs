@@ -8,6 +8,7 @@ pub struct RunConfig<'a> {
     pub scene_config: SceneConfig,
     pub filename: &'a str,
     pub quiet: bool,
+    pub use_bvh: bool,
 }
 
 impl<'a> Default for RunConfig<'a> {
@@ -18,6 +19,7 @@ impl<'a> Default for RunConfig<'a> {
             scene_config: SceneConfig::default(),
             filename: "res.png",
             quiet: false,
+            use_bvh: true,
         }
     }
 }
