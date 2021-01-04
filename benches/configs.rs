@@ -1,8 +1,8 @@
-use std::time::Duration;
-
 use criterion::{
     criterion_group, criterion_main, measurement::WallTime, BenchmarkGroup, BenchmarkId, Criterion,
 };
+use std::time::Duration;
+
 use ray_tracing::RunConfig;
 
 fn get_config() -> RunConfig<'static> {

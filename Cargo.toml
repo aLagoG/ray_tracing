@@ -13,7 +13,11 @@ rayon = "1.5"
 criterion = "0.3"
 
 [[bench]]
-name = "bench"
+name = "configs"
+harness = false
+
+[[bench]]
+name = "perf"
 harness = false
 
 [lib]
